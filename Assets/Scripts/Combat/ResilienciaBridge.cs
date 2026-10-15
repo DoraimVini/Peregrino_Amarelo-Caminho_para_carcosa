@@ -103,15 +103,47 @@ namespace FavelaAmarela.Runtime.Combat
         /// cada desde 2026-09-09, e com qualquer uma vestida cada fatia caía no piso de 15%.
         /// O grito do Byakhee andava a 0,3 RM/s em vez dos 2 que as simulações calibraram.</para>
         ///
-        /// <para><b>Se a Resistência Anômala tiver de reduzir desgaste</b>, que seja como
-        /// multiplicador sobre a taxa por segundo, na fonte — nunca por fatia aqui. Por fatia o
-        /// resultado depende do tamanho do quadro. <c>DrenoContinuoTests</c> guarda isso.</para>
+        /// <para><b>Desde 2026-10-15 é o dreno CRU</b> — para o que não é ataque: o <c>DrenoRM</c>
+        /// que o próprio equipamento cobra. Dreno de anomalia vai por
+        /// <see cref="SofrerDrenoAnomalo"/>, que a Resistência Anômala reduz.</para>
         /// </summary>
         public void SofrerDrenoContinuo(float quantidade)
         {
             if (IgnorarTrauma || quantidade <= 0f) return;
             _resiliencia?.SofrerTrauma(quantidade);
         }
+
+        /// <summary>
+        /// Drena Resiliência por uma <b>anomalia</b> — o grito do Byakhee, a Pressão Psíquica, o Eco
+        /// de Carcosa, o olhar do Rei — com a <b>Resistência Anômala</b> reduzindo em porcentagem
+        /// (<see cref="ResistenciaAnomala.DrenoQuePassa"/>: retorno decrescente, metade em R = 20,
+        /// teto de 75%). Multiplicativa, então não depende do tamanho do quadro.
+        ///
+        /// <para>Pedido do Vini (2026-10-15): a resistência tem de proteger dos drenos — só não pela
+        /// regra do golpe, que por fatia zera o dreno inteiro (o defeito antigo).</para>
+        /// </summary>
+        public void SofrerDrenoAnomalo(float quantidade)
+        {
+            if (quantidade <= 0f) return;
+            SofrerDrenoContinuo(ResistenciaAnomala.DrenoQuePassa(quantidade, _defesaAnomala()));
+        }
+
+        /// <summary>
+        /// Paga um <b>custo</b> em Resiliência — ativar um Artefato. Sem mitigação e sem a proteção
+        /// de cutscene: custo é preço, não ataque.
+        ///
+        /// <para><b>O defeito que isto fecha (2026-10-15):</b> o custo do Artefato ia por
+        /// <see cref="SofrerTrauma"/>, e a armadura o barateava — com o conjunto inicial (R 3) um
+        /// custo de 10 saía por 7, e um de 3 caía ao piso de 0,45.</para>
+        /// </summary>
+        public void PagarResiliencia(float custo)
+        {
+            if (custo <= 0f) return;
+            _resiliencia?.SofrerTrauma(custo);
+        }
+
+        /// <summary>A Resistência Anômala vestida agora — para a interface mostrar o que ela faz.</summary>
+        public float ResistenciaAnomalaAtual => _defesaAnomala();
 
         /// <summary>
         /// Defesa anômala agregada do equipamento — a contraparte mental da

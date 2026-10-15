@@ -204,7 +204,7 @@ namespace FavelaAmarela.Runtime.Enemies
             // contra ficar parado, não golpe — por isso SofrerDrenoContinuo: pelo SofrerTrauma
             // cada fatia do quadro era mitigada como golpe e a taxa caía a 15% com qualquer
             // peça de armadura vestida.
-            _mente?.SofrerDrenoContinuo(taxaDrenoRMPorSegundo * Time.deltaTime);
+            _mente?.SofrerDrenoAnomalo(taxaDrenoRMPorSegundo * Time.deltaTime);
         }
     }
 }

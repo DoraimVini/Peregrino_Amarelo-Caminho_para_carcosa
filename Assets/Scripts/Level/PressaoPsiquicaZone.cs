@@ -45,7 +45,7 @@ namespace FavelaAmarela.Level
             // Desgaste por segundo enquanto o olhar cruza o foco — dreno contínuo, não golpe.
             // Pelo SofrerTrauma cada fatia do quadro era mitigada como um golpe inteiro e caía
             // no piso de 15% com qualquer Defesa Anômala: a taxa autorada valia 15% dela.
-            _mente?.SofrerDrenoContinuo(taxaDrenoRM * Time.deltaTime);
+            _mente?.SofrerDrenoAnomalo(taxaDrenoRM * Time.deltaTime);
         }
 
         private void OnTriggerEnter2D(Collider2D collision)

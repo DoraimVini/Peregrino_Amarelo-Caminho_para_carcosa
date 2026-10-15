@@ -241,7 +241,7 @@ namespace FavelaAmarela.Player
             _ultimoUso[slot] = Time.time;
 
             if (resultado.CustoRM > 0f)
-                Mente?.SofrerTrauma(resultado.CustoRM);
+                Mente?.PagarResiliencia(resultado.CustoRM);
         }
 
         // Componente irmão: a ResilienciaBridge vive no mesmo Damião. Resolvido sob demanda e

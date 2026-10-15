@@ -322,15 +322,16 @@ namespace FavelaAmarela.Runtime.Enemies
         }
 
         /// <summary>
-        /// Aplica na mente o que o rito devolveu. O dreno vai por
-        /// <c>SofrerDrenoContinuo</c> (sem mitigação por fatia — ver a doc dele); a Ancoragem, pelo
-        /// caminho de sempre. Mente em zero é o Colapso do jogo; aqui só se encerra o rito.
+        /// Aplica na mente o que o rito devolveu. O dreno vai por <c>SofrerDrenoAnomalo</c>: a
+        /// Resistência Anômala o reduz em porcentagem (2026-10-15), somando-se ao Anel, que já
+        /// filtra o olhar dentro do Core. A Ancoragem, pelo caminho de sempre. Mente em zero é o
+        /// Colapso do jogo; aqui só se encerra o rito.
         /// </summary>
         private void AplicarNaMente(float delta)
         {
             if (_mente == null) return;
 
-            if (delta < 0f) _mente.SofrerDrenoContinuo(-delta);
+            if (delta < 0f) _mente.SofrerDrenoAnomalo(-delta);
             else if (delta > 0f) _mente.Ancorar(delta);
 
             if (_mente.Ligada && _mente.Atual <= 0f) _rito.Colapsar();

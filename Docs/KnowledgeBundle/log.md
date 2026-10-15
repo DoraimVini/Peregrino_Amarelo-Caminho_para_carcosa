@@ -4,6 +4,27 @@ title: Log de Atualizações do Knowledge Bundle
 description: Histórico cronológico de mudanças na base de conhecimento
 ---
 
+## 2026-10-15 — A Resistência Anômala passa a reduzir os drenos (em porcentagem)
+
+O Vini: *"Faz a Resistência Anômala reduzir os drenos, vamos pensar na matemática."* Depois da
+correção abaixo os drenos ficaram integrais para todo mundo, e a resistência deixou de proteger
+deles. A regra nova não pode ser a do golpe (subtração), que foi exatamente o defeito.
+
+- `Core.Combat.ResistenciaAnomala`: passa `1 − R/(R + 20)` do dreno, redução máxima 75%. Retorno
+  decrescente, multiplicativo (não depende do quadro). R 3 → 13%; R 9 → 31%; R 19 → 49%; R 40 → 67%.
+- `ResilienciaBridge.SofrerDrenoAnomalo`: grito contínuo do Byakhee, Pressão Psíquica, Eco de
+  Carcosa e o olhar do Rei. `SofrerDrenoContinuo` fica cru, para o `DrenoRM` do próprio item.
+- `ResilienciaBridge.PagarResiliencia`: o **custo de Artefato** ia por `SofrerTrauma` e a armadura o
+  barateava (custo 3 com R 3 saía 0,45). Custo é preço; agora sai inteiro.
+- Inventário: o resumo do Damião mostra "Resistência Anômala 3 — drenos da mente −13%".
+- Golpes continuam pela subtração (`MitigacaoDeDano`).
+
+**Guardas:** `ResistenciaAnomalaTests` (11), `DrenoContinuoTests` +5 (dreno anômalo nos 4 casos,
+custo de Artefato) e a varredura de fontes passa a exigir o caminho certo por fonte.
+OKF: `systems/resiliencia_mental.md`, seção "A Resistência Anômala".
+
+**EditMode: 1217 testes, 1200 passam, 0 reprovam, 17 pulados. PlayMode: 82/82.**
+
 ## 2026-10-15 — Dreno contínuo deixa de ser mitigado como golpe
 
 `ResilienciaBridge.SofrerTrauma` mitiga **cada chamada** pela Defesa Anômala do equipamento (subtração

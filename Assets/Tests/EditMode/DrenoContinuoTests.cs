@@ -76,6 +76,44 @@ namespace FavelaAmarela.Tests.EditMode
         }
 
         /// <summary>
+        /// O dreno de <b>anomalia</b> (2026-10-15): a Resistência Anômala o reduz em porcentagem,
+        /// <c>1 − R/(R+20)</c> — e continua sem depender do tamanho do quadro, porque é
+        /// multiplicativa. Os casos são os mesmos do teste acima, para comparar.
+        /// </summary>
+        [TestCase(2f, DefesaDoConjuntoInicial, TestName = "Anomalo: Byakhee passivo, conjunto inicial")]
+        [TestCase(5f, DefesaDoConjuntoInicial, TestName = "Anomalo: Byakhee em frenesi, conjunto inicial")]
+        [TestCase(3f, 14f, TestName = "Anomalo: Eco de Carcosa, conjunto de Set")]
+        [TestCase(6f, 19f, TestName = "Anomalo: Olhar do Rei, Set e Coroa de Ossos")]
+        public void DrenoAnomalo_ReduzPelaResistencia_SemDependerDoQuadro(float taxaPorSegundo, float defesa)
+        {
+            float esperado = taxaPorSegundo * (1f - defesa / (defesa + ResistenciaAnomala.MeiaEficacia));
+
+            foreach (int quadros in new[] { 1, 30, 60, 144 })
+            {
+                var resiliencia = Ligar(defesa);
+                for (int i = 0; i < quadros; i++) _mente.SofrerDrenoAnomalo(taxaPorSegundo / quadros);
+                float drenado = Maximo - resiliencia.Atual;
+
+                Assert.AreEqual(esperado, drenado, Tolerancia,
+                    $"A {quadros} quadros/s, com Resistência Anômala {defesa}, o dreno anômalo de " +
+                    $"{taxaPorSegundo} RM/s entregou {drenado:0.000} em vez de {esperado:0.000}.");
+            }
+        }
+
+        /// <summary>
+        /// Custo é preço, não ataque: o custo de um Artefato sai inteiro, qualquer que seja a
+        /// resistência. Antes ia por <c>SofrerTrauma</c> e a armadura o barateava.
+        /// </summary>
+        [Test]
+        public void CustoDeArtefato_SaiInteiro_ComResistencia()
+        {
+            var resiliencia = Ligar(DefesaDoConjuntoInicial);
+            _mente.PagarResiliencia(3f);
+            Assert.AreEqual(Maximo - 3f, resiliencia.Atual, Tolerancia,
+                "Um custo de 3 com Resistência Anômala 3 tem de custar 3 — pela mitigação de golpe saía 0,45.");
+        }
+
+        /// <summary>
         /// Prova que a defesa injetada chega de fato à mitigação — e que o golpe discreto (o cone
         /// do Byakhee, o Cone de Gelo) continua sendo mitigado, como deve.
         /// </summary>
@@ -111,20 +149,22 @@ namespace FavelaAmarela.Tests.EditMode
         // ── As fontes ────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Cada fonte de desgaste contínuo chama <c>SofrerDrenoContinuo</c> no método que cobra a
-        /// fatia do quadro. Decisão por fonte, com a justificativa no próprio código.
+        /// Cada fonte de desgaste contínuo cobra a fatia do quadro pelo caminho certo: anomalia
+        /// (grito, Pressão, Eco, olhar do Rei) por <c>SofrerDrenoAnomalo</c>, que a Resistência
+        /// Anômala reduz; o <c>DrenoRM</c> do próprio equipamento por <c>SofrerDrenoContinuo</c>,
+        /// cru — é preço do item, não ataque.
         /// </summary>
-        [TestCase("ByakheeAI.cs", "AplicarGritoInfrassonico")]
-        [TestCase("PressaoPsiquicaZone.cs", "AplicarDreno")]
-        [TestCase("EcoDeCarcosa.cs", "DrenarResiliencia")]
-        [TestCase("GerenciadorEfeitosPassivos.cs", "Update")]
-        [TestCase("ReiEmAmareloAI.cs", "AplicarNaMente")]
-        public void FonteContinua_DrenaPorSofrerDrenoContinuo(string arquivo, string metodo)
+        [TestCase("ByakheeAI.cs", "AplicarGritoInfrassonico", "SofrerDrenoAnomalo(")]
+        [TestCase("PressaoPsiquicaZone.cs", "AplicarDreno", "SofrerDrenoAnomalo(")]
+        [TestCase("EcoDeCarcosa.cs", "DrenarResiliencia", "SofrerDrenoAnomalo(")]
+        [TestCase("ReiEmAmareloAI.cs", "AplicarNaMente", "SofrerDrenoAnomalo(")]
+        [TestCase("GerenciadorEfeitosPassivos.cs", "Update", "SofrerDrenoContinuo(")]
+        public void FonteContinua_DrenaPeloCaminhoCerto(string arquivo, string metodo, string chamada)
         {
             string corpo = SemComentarios(CorpoDoMetodo(Ler(arquivo), metodo));
 
-            StringAssert.Contains("SofrerDrenoContinuo(", corpo,
-                $"{arquivo}.{metodo} cobra desgaste por quadro e não chama SofrerDrenoContinuo.");
+            StringAssert.Contains(chamada, corpo,
+                $"{arquivo}.{metodo} cobra desgaste por quadro e não chama {chamada.TrimEnd('(')}.");
             StringAssert.DoesNotContain("SofrerTrauma(", corpo,
                 $"{arquivo}.{metodo} ainda passa a fatia do quadro por SofrerTrauma, que a mitiga " +
                 "como um golpe inteiro.");

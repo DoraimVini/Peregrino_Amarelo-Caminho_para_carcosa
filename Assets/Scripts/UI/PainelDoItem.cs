@@ -140,6 +140,17 @@ namespace FavelaAmarela.Runtime.UI
             _sb.Length = 0;
             _sb.Append("Vitalidade Corpórea ").Append(ficha.VitalidadeMax.ToString("0.#"));
             _sb.Append("\nDefesa Física ").Append(ficha.Defesa.ToString("0.#"));
+
+            // O que a Resistência Anômala FAZ, e não só o número: ela corta os drenos da mente em
+            // porcentagem decrescente (2026-10-15), e "3" sozinho não diz isso a ninguém.
+            float resistencia = GerenciadorEfeitosPassivos.Instance != null
+                ? GerenciadorEfeitosPassivos.Instance.GetBonus(StatType.DefesaAnomalia) : 0f;
+            if (resistencia > 0f)
+            {
+                float corte = FavelaAmarela.Core.Combat.ResistenciaAnomala.ReducaoDeDreno(resistencia) * 100f;
+                _sb.Append("\nResistência Anômala ").Append(resistencia.ToString("0.#"))
+                   .Append(" — drenos da mente −").Append(corte.ToString("0")).Append('%');
+            }
             return _sb.ToString();
         }
 

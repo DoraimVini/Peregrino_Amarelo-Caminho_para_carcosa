@@ -519,7 +519,7 @@ namespace FavelaAmarela.Runtime.Enemies
             float dreno = _fsm.DrenoDeResilienciaPorSegundo;
             if (dreno <= 0f) return;
 
-            _mente?.SofrerDrenoContinuo(dreno * Time.deltaTime);
+            _mente?.SofrerDrenoAnomalo(dreno * Time.deltaTime);
         }
 
         private void Circundar()
