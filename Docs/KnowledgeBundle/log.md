@@ -4,6 +4,25 @@ title: Log de Atualizações do Knowledge Bundle
 description: Histórico cronológico de mudanças na base de conhecimento
 ---
 
+## 2026-10-15 — Dreno contínuo deixa de ser mitigado como golpe
+
+`ResilienciaBridge.SofrerTrauma` mitiga **cada chamada** pela Defesa Anômala do equipamento (subtração
+com piso de 15%). Quem drena por segundo chamava-o a cada quadro com uma fatia de ~0,05 RM — e com
+qualquer peça que rolasse Resistência Anômala a fatia caía no piso: a taxa autorada valia 15% dela.
+
+- Passam a usar `SofrerDrenoContinuo` (sem mitigação, respeita `IgnorarTrauma`): o grito
+  infrassônico do Byakhee (`ByakheeAI.AplicarGritoInfrassonico`), a `PressaoPsiquicaZone`, o
+  `EcoDeCarcosa` e o saldo de RM das passivas (`GerenciadorEfeitosPassivos`).
+- `GerenciadorEfeitosPassivos`: o limiar compara a **taxa** por segundo (0,06), não a fatia do
+  quadro — um saldo pequeno passava a 30 fps e sumia a 60.
+- `ResilienciaBridge.DefinirDefesaAnomalaParaTeste`: a defesa vira injetável para o teste.
+- Golpe discreto continua mitigado (`SofrerTrauma`).
+
+**Guarda:** `DrenoContinuoTests` (12) — 60 quadros de 1/60 s drenam o mesmo que 1 de 1 s, com
+Defesa Anômala > 0; nenhuma fonte contínua passa fatia de quadro por `SofrerTrauma`.
+
+**EditMode: 1201 testes, 1184 passam, 0 reprovam, 17 pulados. PlayMode: 82/82.**
+
 ## 2026-09-28 — Inventário, plano B: a tela descreve o item; e três defeitos de item que ela expôs
 
 O Vini: *"Quando você acabar com essa parte, ataque o inventário."* Capturado em Play antes: a

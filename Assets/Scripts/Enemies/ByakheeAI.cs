@@ -507,13 +507,19 @@ namespace FavelaAmarela.Runtime.Enemies
         /// <summary>
         /// O grito passivo drena Resiliência sem precisar acertar ninguém — é o relógio da
         /// luta. Quem demora colapsa mesmo intocado.
+        ///
+        /// <para><b>Dreno contínuo, não golpe</b> — por isso <c>SofrerDrenoContinuo</c>. Pelo
+        /// <c>SofrerTrauma</c>, cada fatia de quadro (2/60 ≈ 0,03) passava pela mitigação por
+        /// golpe e caía no piso de 15% com qualquer peça de armadura vestida: o relógio que
+        /// <c>LutaContraByakheeTests</c> calibrou a 2 RM/s andava a 0,3 em jogo. O cone
+        /// (<see cref="EmitirCone"/>) é golpe de verdade e continua mitigado.</para>
         /// </summary>
         private void AplicarGritoInfrassonico()
         {
             float dreno = _fsm.DrenoDeResilienciaPorSegundo;
             if (dreno <= 0f) return;
 
-            _mente?.SofrerTrauma(dreno * Time.deltaTime);
+            _mente?.SofrerDrenoContinuo(dreno * Time.deltaTime);
         }
 
         private void Circundar()
@@ -638,7 +644,10 @@ namespace FavelaAmarela.Runtime.Enemies
             alvo?.ReceberGolpe(golpe);
         }
 
-        /// <summary>Cone de pressão sonora: fere a mente, não o corpo.</summary>
+        /// <summary>
+        /// Cone de pressão sonora: fere a mente, não o corpo. Um golpe só, disparado pela FSM —
+        /// por isso <c>SofrerTrauma</c>, com a Defesa Anômala subtraída uma vez.
+        /// </summary>
         private void EmitirCone()
         {
             if (_jogador == null) return;

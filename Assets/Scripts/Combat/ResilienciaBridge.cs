@@ -82,7 +82,7 @@ namespace FavelaAmarela.Runtime.Combat
         {
             if (IgnorarTrauma) return;
 
-            _resiliencia?.SofrerTrauma(MitigacaoDeDano.Aplicar(quantidade, DefesaAnomala));
+            _resiliencia?.SofrerTrauma(MitigacaoDeDano.Aplicar(quantidade, _defesaAnomala()));
         }
 
         /// <summary>
@@ -95,6 +95,17 @@ namespace FavelaAmarela.Runtime.Combat
         /// a regra da luta, viraria outro número conforme o equipamento, sem ninguém ter decidido
         /// isso. Desgaste contínuo não é golpe; a relíquia que filtra o olhar (o Anel) é quem mexe
         /// nele, e de propósito.</para>
+        ///
+        /// <para><b>Quem passa por aqui (2026-09-28):</b> o olhar do Rei, o grito infrassônico do
+        /// Byakhee, a <c>PressaoPsiquicaZone</c>, o Eco de Carcosa e o <c>DrenoRM</c> do
+        /// equipamento. As quatro últimas iam por <see cref="SofrerTrauma"/> — e o defeito
+        /// <b>não estava inerte</b>: as três peças do conjunto inicial dão +1 de Defesa Anômala
+        /// cada desde 2026-09-09, e com qualquer uma vestida cada fatia caía no piso de 15%.
+        /// O grito do Byakhee andava a 0,3 RM/s em vez dos 2 que as simulações calibraram.</para>
+        ///
+        /// <para><b>Se a Resistência Anômala tiver de reduzir desgaste</b>, que seja como
+        /// multiplicador sobre a taxa por segundo, na fonte — nunca por fatia aqui. Por fatia o
+        /// resultado depende do tamanho do quadro. <c>DrenoContinuoTests</c> guarda isso.</para>
         /// </summary>
         public void SofrerDrenoContinuo(float quantidade)
         {
@@ -114,10 +125,27 @@ namespace FavelaAmarela.Runtime.Combat
         ///
         /// <para>Fica inerte até alguém equipar algo que role o atributo, então não muda
         /// dificuldade nenhuma hoje: fecha o buraco sem mexer no balanceamento.</para>
+        ///
+        /// <para><b>Desatualizado desde 2026-09-09:</b> as armaduras passaram a dar
+        /// <c>DefesaAnomalia</c> (o conjunto inicial soma 3), então isto está vivo em jogo.</para>
         /// </summary>
-        private static float DefesaAnomala =>
+        private static float DefesaDoEquipamento() =>
             FavelaAmarela.Player.GerenciadorEfeitosPassivos.Instance
                 ?.GetBonus(FavelaAmarela.Inventario.StatType.DefesaAnomalia) ?? 0f;
+
+        private System.Func<float> _defesaAnomala = DefesaDoEquipamento;
+
+        /// <summary>
+        /// <b>Costura de teste — o jogo não chama.</b> Troca a fonte da Defesa Anômala que
+        /// <see cref="SofrerTrauma"/> subtrai; <c>null</c> volta ao equipamento
+        /// (<c>GerenciadorEfeitosPassivos</c>), que é a fonte de jogo.
+        ///
+        /// <para><b>Por que existe.</b> A regra "dreno contínuo não é golpe" só se prova com
+        /// defesa <b>maior que zero</b>. Montar inventário e equipamento num teste EditMode para
+        /// obter esse número testaria o inventário, não a mente.</para>
+        /// </summary>
+        public void DefinirDefesaAnomalaParaTeste(System.Func<float> fonte) =>
+            _defesaAnomala = fonte ?? DefesaDoEquipamento;
 
         /// <summary>
         /// Restaura Resiliência (Ancoragem). <b>Não</b> respeita <see cref="IgnorarTrauma"/> —

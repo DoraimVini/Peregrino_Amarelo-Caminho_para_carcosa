@@ -25,6 +25,7 @@ ok metodo ItemDatabase.ClearInstanceForTesting | O nome diz. Existe para o rig d
 ok metodo ItemDatabase.InitializeForTesting | O nome diz. Existe para o rig de teste.
 ok metodo PortalDeCena.DefinirCenaDestino | As ferramentas de Editor montam os portais; em jogo o destino vem serializado.
 ok metodo PortalDeCena.DefinirChegada | Idem.
+ok metodo ResilienciaBridge.DefinirDefesaAnomalaParaTeste | O nome diz. Costura para DrenoContinuoTests provar, com Defesa Anômala > 0, que dreno contínuo não é mitigado por fatia (2026-09-28). Em jogo a defesa vem do equipamento.
 
 divida metodo AbdulAlhazredAI.MirarEm | A mira das conjurações do Abdul existe e nada a aciona — ele conjura sem apontar.
 divida metodo IsometricCameraController.SetZoom | Nenhum momento do jogo aproxima ou afasta a câmera. Candidato natural: o desvelar do Rei e a morte.

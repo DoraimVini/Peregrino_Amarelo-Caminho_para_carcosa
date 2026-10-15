@@ -136,17 +136,24 @@ namespace FavelaAmarela.Player
 
             // Keystone do Protetor: "O Pacto do Rei" anula o dreno de RM no escuro.
             // Por ora apenas agregamos; a lógica de escuro virá do StealthManager.
-            float deltaRM = (regen - dreno) * Time.deltaTime;
+            float taxaRM = regen - dreno;
 
-            if (deltaRM > 0.001f)
+            // O limiar compara a TAXA por segundo, não a fatia do quadro. Comparado com a fatia
+            // (0,001 por quadro, como era), um saldo de 0,05 RM/s passava a 30 fps e sumia a 60.
+            if (taxaRM > LimiarDeTaxaRM)
             {
-                _mente.Ancorar(deltaRM);
+                _mente.Ancorar(taxaRM * Time.deltaTime);
             }
-            else if (deltaRM < -0.001f)
+            else if (taxaRM < -LimiarDeTaxaRM)
             {
-                _mente.SofrerTrauma(Mathf.Abs(deltaRM));
+                // Dreno contínuo, não golpe: pelo SofrerTrauma a Defesa Anômala do próprio
+                // equipamento esmagava cada fatia até o piso de 15%.
+                _mente.SofrerDrenoContinuo(-taxaRM * Time.deltaTime);
             }
         }
+
+        /// <summary>O 0,001 por quadro de antes, a 60 fps, expresso por segundo.</summary>
+        private const float LimiarDeTaxaRM = 0.06f;
 
         /// <summary>
         /// Agrega o bônus total para um determinado status (soma todos os multiplicadores e bônus fixos).

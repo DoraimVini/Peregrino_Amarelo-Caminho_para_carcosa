@@ -200,8 +200,11 @@ namespace FavelaAmarela.Runtime.Enemies
 
         private void DrenarResiliencia()
         {
-            // Drena a sanidade do Damião pela presença opressiva do Eco.
-            _mente?.SofrerTrauma(taxaDrenoRMPorSegundo * Time.deltaTime);
+            // Drena a sanidade do Damião pela presença opressiva do Eco. É pressão por segundo
+            // contra ficar parado, não golpe — por isso SofrerDrenoContinuo: pelo SofrerTrauma
+            // cada fatia do quadro era mitigada como golpe e a taxa caía a 15% com qualquer
+            // peça de armadura vestida.
+            _mente?.SofrerDrenoContinuo(taxaDrenoRMPorSegundo * Time.deltaTime);
         }
     }
 }
