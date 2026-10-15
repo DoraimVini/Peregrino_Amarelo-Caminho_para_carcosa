@@ -97,6 +97,8 @@ namespace FavelaAmarela.EditorTools
                 log.AppendLine("   Overrides órfãos da instância do Rei removidos.");
             }
 
+            MontarDesabamento(z5.transform, material, nobres, log);
+
             EditorSceneManager.MarkSceneDirty(cena);
             EditorSceneManager.SaveScene(cena);
             Debug.Log(log.ToString());
@@ -333,6 +335,94 @@ namespace FavelaAmarela.EditorTools
 
             log.AppendLine("   Eco da Queda: imobilidade 1,5 s, inativo até a Fase 5.");
             return eco;
+        }
+
+        // ── O fim trágico ────────────────────────────────────────────────────
+
+        private const string PastaDasRuinas = "Assets/ThirdParty/CraftPix/Undead/Objetos";
+
+        /// <summary>
+        /// O Castelo que desaba sobre o Damião depois do selamento (2026-10-15). Pedras: as ruínas
+        /// pequenas do pacote Undead (pedra escura, a paleta do Castelo); o arco final: a Ruin_1.
+        /// Liga-se à <c>SequenciaDeSelamento</c> do <c>Desfecho</c>, que passa a cortar seco para o
+        /// preto no impacto, e troca a frase final.
+        /// </summary>
+        private static void MontarDesabamento(Transform z5, Material material, CoberturaDoTrono[] nobres,
+                                              StringBuilder log)
+        {
+            var go = Filho(z5, "Desabamento_Do_Castelo");
+            // Na origem do mundo: as pedras são posicionadas em coordenadas de mundo.
+            go.transform.position = Vector3.zero;
+            var comp = Garantir<DesabamentoDoCastelo>(go);
+
+            var pedras = new[] { "Ruin_4", "Ruin_5" }  // Ruin_3 tem coluna em pé: em quantidade, vira floresta de colunas
+                .Select(n => AssetDatabase.LoadAssetAtPath<Sprite>($"{PastaDasRuinas}/{n}.png"))
+                .Where(s => s != null).ToArray();
+            var arco = AssetDatabase.LoadAssetAtPath<Sprite>($"{PastaDasRuinas}/Ruin_1.png");
+            if (pedras.Length == 0 || arco == null)
+                Debug.LogError($"[RitoDoOlhar] Sem as ruínas em '{PastaDasRuinas}' — o desabamento fica sem arte.");
+
+            var so = new SerializedObject(comp);
+            Lista(so.FindProperty("pedras"), pedras);
+            so.FindProperty("arcoFinal").objectReferenceValue = arco;
+            so.FindProperty("material").objectReferenceValue = material;
+            Lista(so.FindProperty("nobres"), nobres);
+            so.FindProperty("centroDaSala").vector2Value = new Vector2(0f, 62.1f);
+            so.FindProperty("meiaDiagonal").vector2Value = new Vector2(15f, 8f);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            var desfecho = Object.FindAnyObjectByType<FavelaAmarela.Runtime.GameLoop.SequenciaDeSelamento>(FindObjectsInactive.Include);
+            if (desfecho == null)
+            {
+                Debug.LogError("[RitoDoOlhar] Sem SequenciaDeSelamento na cena — o desabamento não teria quem o tocasse.");
+                return;
+            }
+
+            var sd = new SerializedObject(desfecho);
+            sd.FindProperty("desabamento").objectReferenceValue = comp;
+            sd.FindProperty("linhaDoDesfecho").stringValue =
+                "O Sinal se fechou — e Carcosa desabou sobre quem o fechou.\n\n" +
+                "Ninguém saiu do Trono de Aldebaran.";
+            sd.ApplyModifiedPropertiesWithoutUndo();
+            AjustarATelaDoFim(sd);
+            log.AppendLine($"   Desabamento: {pedras.Length} pedras + arco, {nobres.Length} Nobres; ligado ao Desfecho.");
+        }
+
+        /// <summary>
+        /// A tela do fim cobre a tela inteira e a frase se lê de longe. Medido na captura de
+        /// 2026-10-15: sobrava uma moldura cinza nas bordas e a frase tinha ~12 px a 720p.
+        /// </summary>
+        private static void AjustarATelaDoFim(SerializedObject desfecho)
+        {
+            var painel = desfecho.FindProperty("painel").objectReferenceValue as CanvasGroup;
+            var texto = desfecho.FindProperty("texto").objectReferenceValue as UnityEngine.UI.Text;
+            if (painel != null)
+            {
+                var rt = (RectTransform)painel.transform;
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = new Vector2(-40f, -40f);   // passa da borda: nenhuma fresta do mundo
+                rt.offsetMax = new Vector2(40f, 40f);
+                var img = painel.GetComponent<UnityEngine.UI.Image>();
+                if (img != null) img.color = Color.black;
+            }
+            if (texto != null)
+            {
+                var rt = (RectTransform)texto.transform;
+                rt.anchorMin = new Vector2(0.12f, 0.3f);
+                rt.anchorMax = new Vector2(0.88f, 0.7f);
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+                texto.font = PaletaDaInterface.Fonte;
+                texto.fontSize = 48;
+                texto.resizeTextForBestFit = true;
+                texto.resizeTextMinSize = 28;
+                texto.resizeTextMaxSize = 48;
+                texto.alignment = TextAnchor.MiddleCenter;
+                texto.horizontalOverflow = HorizontalWrapMode.Wrap;
+                texto.verticalOverflow = VerticalWrapMode.Truncate;
+                EditorUtility.SetDirty(texto);
+            }
         }
 
         // ── Utilidades ───────────────────────────────────────────────────────

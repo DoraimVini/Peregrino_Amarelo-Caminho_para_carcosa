@@ -29,7 +29,19 @@ Não existe estado seguro que avance o selo: para vencer é preciso ser visto. O
 controles que o jogador já tem. **Nenhum botão novo** (decisão do Vini: *"vai criar um botão só
 para essa luta?"*).
 
-- **Vitória:** selo em 100 → `OnVitoria` → `SequenciaDeSelamento` (o jogo volta ao Menu).
+- **Vitória — e o fim trágico (2026-10-15):** selo em 100 → `OnVitoria` →
+  `SequenciaDeSelamento` → **o Castelo desaba sobre o Damião** (`DesabamentoDoCastelo`, cronograma
+  em `Core.Enemies.DesabamentoDoTrono`, ~11 s): 1,5 s de silêncio de falsa vitória; tremor e as
+  primeiras pedras longe (*"A pedra de Carcosa não sabe existir sem o Rei."*); 6 s de pedras cada
+  vez mais densas e mais perto, com os Nobres tombando — o jogador **ainda corre**, e correr não
+  adianta, a mira segue ele; 1,2 s com o controle travado e a sombra do arco crescendo; o arco
+  cai e a tela **corta seco para o preto**. Silêncio, a frase final (provisória: *"O Sinal se
+  fechou — e Carcosa desabou sobre quem o fechou. / Ninguém saiu do Trono de Aldebaran."*) e o
+  Menu. Do selo ao Menu o Damião é intocável — medido em Play, a mente baixa caía a zero na tela
+  preta e o Colapso aparecia por cima do fim. Arte: ruínas do pacote Undead (CraftPix). **Quando
+  houver arte, vira cinemática** (decisão do Vini); o encaixe é o campo `desabamento` da
+  `SequenciaDeSelamento`. Montado por `Trono: montar o Rito do Olhar`; guardas
+  `DesabamentoDoTronoTests` e `OFimTragicoTests` (PlayMode).
 - **Derrota:** Resiliência em zero → o Colapso de sempre; o rito só se encerra.
 - **"Visto"** = o segmento do **olho do Rei** até os **pés do Damião** não atravessa a pegada de
   nenhum Nobre de pé (`LinhaDeVisao.Cruza`, Liang–Barsky, sem alocação). Não depende de

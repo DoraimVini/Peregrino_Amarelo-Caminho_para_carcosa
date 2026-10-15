@@ -4,6 +4,29 @@ title: Log de Atualizações do Knowledge Bundle
 description: Histórico cronológico de mudanças na base de conhecimento
 ---
 
+## 2026-10-15 — O fim trágico: selado o Rei, o Castelo desaba sobre Damião
+
+O Vini: *"Vamos fazer um fim trágico, onde, depois de selar o Rei, o Castelo de Carcosa desaba
+sobre Damião."* E: *"Quando tivermos arte, fazemos uma cinemática no final."* Esta é a versão
+jogada, com a arte que existe; o encaixe para a cinemática fica pronto.
+
+- `Core.Enemies.DesabamentoDoTrono` (cronograma, ~11 s): Silêncio 1,5 → Tremor 2,5 → Desabamento 6
+  → Soterramento 1,2 → Soterrado. Pedras de 0,8 a 7 por segundo, mira de 9 a 2 un em volta do
+  Damião, tremor de 0,25 a 0,85, golpe final uma vez só (mesmo num quadro longo).
+- `Runtime.Enemies.DesabamentoDoCastelo`: 64 pedras pré-criadas (Ruin_4/5 do pacote Undead, giro
+  leve), queda com gravidade e sombra crescendo, entulho fica no chão; Nobres tombam ao longo do
+  desabamento; no Soterramento o controle trava e o arco (Ruin_1 × 3) cai sobre o Damião.
+- `SequenciaDeSelamento`: com `desabamento` ligado, corta seco para o preto no impacto, silêncio,
+  frase final nova (provisória), Menu. Sem ele, o fim antigo.
+- **Dois defeitos medidos em Play e corrigidos:** (1) a mente baixa caía a zero na tela preta e o
+  **Colapso aparecia por cima do fim** — o Damião fica intocável do selo ao Menu; (2) o **HUD era
+  desenhado por cima do preto** — o painel ganha um Canvas acima dele, criado com o painel já
+  ligado (num objeto inativo a Unity o trata como raiz e ignora a ordem).
+- A ferramenta do Trono monta tudo (e a tela do fim: preto de borda a borda, frase em 48).
+
+**Guardas:** `DesabamentoDoTronoTests` (6), `OFimTragicoTests` (PlayMode, cena real).
+**EditMode: 1223 testes, 1206 passam, 0 reprovam, 17 pulados. PlayMode: 83/83.**
+
 ## 2026-10-15 — A Resistência Anômala passa a reduzir os drenos (em porcentagem)
 
 O Vini: *"Faz a Resistência Anômala reduzir os drenos, vamos pensar na matemática."* Depois da

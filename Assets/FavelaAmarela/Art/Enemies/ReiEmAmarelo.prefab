@@ -198,6 +198,7 @@ MonoBehaviour:
   materialDosTracos: {fileID: 0}
   ordemDoFarol: -2000
   fonteDaTela: {fileID: 0}
+  subidaDaCamera: 2.2
   duracaoDoApagar: 3
   animator: {fileID: 0}
   caixaDeTexto: {fileID: 0}
