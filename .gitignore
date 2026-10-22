@@ -132,3 +132,6 @@ Tools/aseprite-bridge/node_modules/
 # Saída dos wrappers de QA: XML de resultado e log da Unity. É artefato de build,
 # não fonte — vinha sendo commitado como ruído em praticamente todo commit.
 TestResults/
+
+# Lista de objetos LFS gerada pelo workflow de build (chave do cache)
+.lfs-assets-id

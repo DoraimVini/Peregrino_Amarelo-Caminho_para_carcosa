@@ -1,0 +1,118 @@
+# Gera a build Windows 64 de "Caminho para Carcosa" pelo mesmo caminho do menu
+# Tools/FavelaAmarela/Build: ... — o método FavelaAmarela.EditorTools.GerarBuild.PelaLinhaDeComando.
+#
+# Segredos necessários (Settings → Secrets and variables → Actions):
+#   UNITY_LICENSE   conteúdo do arquivo .ulf da licença Personal
+#   UNITY_EMAIL     e-mail da conta Unity
+#   UNITY_PASSWORD  senha da conta Unity
+# (Licença Pro/Plus: troque UNITY_LICENSE por UNITY_SERIAL no passo de Build.)
+# Passo a passo da licença: https://game.ci/docs/github/activation
+
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: "Modo da build"
+        type: choice
+        options: [entrega, desenvolvimento]
+        default: entrega
+  push:
+    tags: ["v*"]
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # anexar o zip à Release quando a build vem de uma tag
+
+jobs:
+  build-windows:
+    name: Windows 64
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      # Tag sempre gera build de ENTREGA (sem o console F1).
+      MODO: ${{ github.event.inputs.modo || 'entrega' }}
+    steps:
+      # A imagem da Unity + Library ocupam mais do que o runner deixa livre por padrão.
+      - name: Liberar espaço em disco
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ~100 MB de arte vivem no Git LFS (4.855 PNGs). Sem cache, cada build gasta essa banda
+      # da cota mensal do LFS do GitHub; com cache, só o que mudou é baixado.
+      - name: Listar objetos LFS
+        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+
+      - name: Cache do LFS
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+          restore-keys: lfs-
+
+      - name: Baixar arquivos LFS
+        run: git lfs pull
+
+      - name: Cache da Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-StandaloneWindows64-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-StandaloneWindows64-
+
+      - name: Build (${{ env.MODO }})
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          # A versão da Unity vem de ProjectSettings/ProjectVersion.txt (6000.4.4f1).
+          targetPlatform: StandaloneWindows64
+          buildMethod: FavelaAmarela.EditorTools.GerarBuild.PelaLinhaDeComando
+          customParameters: -favelaModo ${{ env.MODO }}
+          allowDirtyBuild: true # o runner pode sujar a árvore (ex.: caches); o build não depende disso
+
+      # O exit code não basta como prova (Corolário 4): confere que o executável existe.
+      - name: Conferir executável
+        run: |
+          if [ "$MODO" = "entrega" ]; then PASTA=Entrega; else PASTA=Desenvolvimento; fi
+          EXE="Builds/$PASTA/CaminhoParaCarcosa.exe"
+          if [ ! -f "$EXE" ]; then
+            echo "::error::A Unity terminou, mas $EXE não existe."
+            ls -R Builds 2>/dev/null || echo "(pasta Builds ausente)"
+            exit 1
+          fi
+          echo "PASTA=$PASTA" >> "$GITHUB_ENV"
+          du -sh "Builds/$PASTA"
+
+      - name: Publicar artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: CaminhoParaCarcosa-${{ env.PASTA }}-${{ github.ref_name }}-${{ github.run_number }}
+          path: Builds/${{ env.PASTA }}
+          retention-days: 14
+
+      - name: Compactar para a Release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd "Builds/$PASTA"
+          sudo zip -qr "$GITHUB_WORKSPACE/CaminhoParaCarcosa-${GITHUB_REF_NAME}-Windows64.zip" .
+
+      - name: Anexar à Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: CaminhoParaCarcosa-${{ github.ref_name }}-Windows64.zip

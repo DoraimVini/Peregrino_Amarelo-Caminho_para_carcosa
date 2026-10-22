@@ -4,6 +4,27 @@ title: Log de Atualizações do Knowledge Bundle
 description: Histórico cronológico de mudanças na base de conhecimento
 ---
 
+## 2026-10-22 — Build pelo GitHub Actions
+
+O Vini perguntou se havia uma build pronta no repositório. Não havia: `Builds/` está no
+`.gitignore`, não existe Release publicada nem workflow de CI. Toda build saía do Editor dele.
+
+- **CI:** `.github/workflows/build.yml` gera a build Windows 64 com `game-ci/unity-builder@v4`
+  (imagem `unityci/editor:ubuntu-6000.4.4f1-windows-mono-3`, conferida no Docker Hub) chamando o
+  mesmo `GerarBuild.PelaLinhaDeComando` do menu — nenhum caminho de build paralelo.
+  Disparo manual (`workflow_dispatch`, escolhe `entrega`/`desenvolvimento`) ou tag `v*`
+  (sempre `entrega`, e o zip é anexado à Release). Artefato fica 14 dias nas Actions.
+- **LFS:** `actions/checkout` + `git lfs pull` com cache de `.git/lfs` (≈100 MB, 4.855 PNGs) para
+  não gastar a cota mensal de banda do LFS a cada build. Cache da `Library/` também.
+- **Editor (`GerarBuild.cs`):** `Construir` passa a devolver `bool`, e `PelaLinhaDeComando` sai
+  com `EditorApplication.Exit(1)` em batch mode quando a build falha. Antes, uma build quebrada
+  saía com código 0 e o CI ficaria verde sem executável. O workflow ainda confere que o `.exe`
+  existe (Corolário 4: exit code não é prova).
+- **Pendente do Vini:** cadastrar os segredos `UNITY_LICENSE`, `UNITY_EMAIL`, `UNITY_PASSWORD`.
+- **Não verificado:** a mudança em `GerarBuild.cs` não foi compilada (sessão sem Unity), e o
+  workflow ainda não rodou. Risco conhecido: `com.unity.pipeline` 0.6.0-exp.1 é experimental e
+  pode não resolver no container do CI.
+
 ## 2026-10-15 — O fim trágico: selado o Rei, o Castelo desaba sobre Damião
 
 O Vini: *"Vamos fazer um fim trágico, onde, depois de selar o Rei, o Castelo de Carcosa desaba
