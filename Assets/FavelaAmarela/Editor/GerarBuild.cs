@@ -39,8 +39,13 @@ namespace FavelaAmarela.EditorTools
         public static void Entrega() => Construir(desenvolvimento: false);
 
         /// <summary>
-        /// Ponto de entrada para linha de comando. Lê <c>-favelaModo entrega</c> dos argumentos;
-        /// qualquer outra coisa (ou nada) constrói em modo de desenvolvimento.
+        /// Ponto de entrada para linha de comando (e para o workflow do GitHub Actions). Lê
+        /// <c>-favelaModo entrega</c> dos argumentos; qualquer outra coisa (ou nada) constrói em
+        /// modo de desenvolvimento.
+        ///
+        /// <para>Em batch mode, uma build que falha <b>encerra a Unity com código 1</b>. Sem isso,
+        /// <c>-executeMethod</c> sai com 0 mesmo quando a build falhou (o <c>Debug.LogError</c>
+        /// não muda o código de saída), e o CI ficaria verde sem executável nenhum.</para>
         /// </summary>
         public static void PelaLinhaDeComando()
         {
@@ -50,10 +55,14 @@ namespace FavelaAmarela.EditorTools
             bool entrega = i >= 0 && i + 1 < args.Length &&
                            string.Equals(args[i + 1], "entrega", StringComparison.OrdinalIgnoreCase);
 
-            Construir(desenvolvimento: !entrega);
+            bool ok = Construir(desenvolvimento: !entrega);
+
+            if (!ok && Application.isBatchMode)
+                EditorApplication.Exit(1);
         }
 
-        private static void Construir(bool desenvolvimento)
+        /// <summary>Gera a build e devolve <c>true</c> só se ela saiu com sucesso.</summary>
+        private static bool Construir(bool desenvolvimento)
         {
             var cenas = EditorBuildSettings.scenes
                 .Where(c => c.enabled)
@@ -64,7 +73,7 @@ namespace FavelaAmarela.EditorTools
             {
                 Debug.LogError($"{Marcador} Nenhuma cena habilitada em Build Settings — a build " +
                                "sairia vazia.");
-                return;
+                return false;
             }
 
             string pasta = Path.Combine("Builds", desenvolvimento ? "Desenvolvimento" : "Entrega");
@@ -104,7 +113,7 @@ namespace FavelaAmarela.EditorTools
                 }
 
                 Debug.LogError($"{Marcador} FALHOU: {resumo.result}, {resumo.totalErrors} erro(s).");
-                return;
+                return false;
             }
 
             string limpeza = ApagarOQueNaoSeEntrega(pasta);
@@ -117,6 +126,7 @@ namespace FavelaAmarela.EditorTools
                       $"{(desenvolvimento ? "PRESENTE" : "AUSENTE — não foi compilado")}\n" +
                       $"{Marcador} {limpeza}\n" +
                       $"{Marcador} Saída: {Path.GetFullPath(opcoes.locationPathName)}");
+            return true;
         }
 
         /// <summary>
